@@ -1,5 +1,6 @@
 package com.inglc.codebase.config;
 
+import lombok.Data;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
@@ -19,19 +20,19 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author L.C
  * @date 2019/12/28
  */
-
+@Data
 @Configuration
 @ConfigurationProperties(prefix = "spring.redis")
 public class RedisCacheConfiguration extends RedisProperties {
 
 
-	@Value("${spring.redis.lettuce.pool.max-active}")
+//	@Value("${spring.redis.lettuce.pool.max-active}")
 	private int maxTotal;
 
-	@Value("${spring.redis.lettuce.pool.max-idle}")
+//	@Value("${spring.redis.lettuce.pool.max-idle}")
 	private int maxIdle ;
 
-	@Value("${spring.redis.lettuce.pool.min-idle}")
+//	@Value("${spring.redis.lettuce.pool.min-idle}")
 	private int minIdle ;
 
 	@Bean("redisConnectionFactory")
