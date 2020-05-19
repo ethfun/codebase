@@ -17,19 +17,25 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class RabbitMqListener {
+public class RabbitMQListener {
 
 
 
 	private static final Gson gson = new Gson();
 
 	/**
+	 * 1、Publisher Send to exchange confirmCallback log
+	 * 2、Publisher routing to queue fail returnCallback log
+	 * 3、Consumer ack
 	 * goods delta indexing mq message listener
+	 *
+	 * queue be declare in RabbitConfig already ,no need to bind again
 	 */
-	@RabbitListener(bindings =@QueueBinding(
-			value = @Queue(value = "queue.goods.deltaIndex",durable = "true"),
-			exchange =@Exchange(value = "exchange.index.delta"),
-			key = "goods.index.delta"))
+//	@RabbitListener(bindings =@QueueBinding(
+//			value = @Queue(value = "queue.goods.deltaIndex",durable = "true"),
+//			exchange =@Exchange(value = "exchange.index.delta"),
+//			key = "goods.index.delta"))
+	@RabbitListener(queues = "queue.index.goods.info")
 	public void goodsDeltaIndexing(Message message) {
 		String goodsIdMapString = new String(message.getBody());
 		MessageProperties messageProperties = message.getMessageProperties();
