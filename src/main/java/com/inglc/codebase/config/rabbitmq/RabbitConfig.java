@@ -17,12 +17,14 @@ import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory.ConfirmType;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -37,6 +39,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "spring.rabbitmq")
 public class RabbitConfig extends RabbitProperties {
+
+
+//	@Autowired
+//	private ConnectionFactory connectionFactory;
 
 	//region Java config, 注意 amqpAdmin的申明，推荐SpringBoot资源文件配置
 	@Bean
@@ -154,7 +160,11 @@ public class RabbitConfig extends RabbitProperties {
 	public RabbitTemplate rabbitTemplate() {
 		RabbitTemplate rabbitTemplate = new RabbitTemplate(this.connectionFactory());
 		rabbitTemplate.setConfirmCallback((data, ack, cause) -> {
-			log.info("send success data is {}, ack is {}, cause is {}", data, ack, cause);
+			if (ack) {
+				log.error("send success data is {}, msg is {}, ack is {}, cause is {}", data.getId(), ack, cause);
+			} else {
+				log.error("send fail data is {}, ack is {}, cause is {}", data.getId(), ack, cause);
+			}
 		});
 		rabbitTemplate.setMandatory(true);
 		rabbitTemplate.setReturnCallback((message, replyCode, replyText, exchange, routingKey) -> {
@@ -166,5 +176,48 @@ public class RabbitConfig extends RabbitProperties {
 		});
 		return rabbitTemplate;
 	}
+
+
+
+
+	//<editor-fold desc="config delay queue">
+	/**
+	 * using the queue name as the new routing key.
+	 * This will work since any queue is bound to the default exchange with the binding key equal to the queue name.
+	 *
+	 * The default exchange is a direct exchange with no name (empty string) pre-declared by the broker.
+	 * It has one special property that makes it very useful for simple applications:
+	 * every queue that is created is automatically bound to it with a routing key which is the same as the queue name.
+	 *
+	 * @return
+	 */
+	@Bean
+	Queue incomingQueue() {
+		return QueueBuilder.durable("queue.test.incoming")
+				.withArgument("x-message-ttl", 10000) // Delay until the message is transferred in milliseconds.
+//				.withArgument("x-dead-letter-exchange", GOODS_TOPIC_EXCHANGE.getName())
+//				.withArgument("x-dead-letter-routing-key", GOODS_ISHIDDEN_ROUTING_KEY.getName())
+				.withArgument("x-dead-letter-exchange", "")
+				.withArgument("x-dead-letter-routing-key", "queue.index.goods.state.on")
+				.build();
+	}
+
+	@Bean
+	DirectExchange exchange() {
+		return new DirectExchange("exchange.deadLetter");
+	}
+
+	@Bean
+	Queue deadLetterQueue() {
+		return QueueBuilder.durable("queue.test.dead-letter").build();
+	}
+
+	@Bean
+	Binding binding() {
+		return BindingBuilder.bind(incomingQueue()).to(exchange()).with("routing-key.test.dead-letter");
+	}
+	//</editor-fold>
+
+
 
 }
