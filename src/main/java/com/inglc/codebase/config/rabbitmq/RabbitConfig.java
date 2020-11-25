@@ -40,11 +40,13 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "spring.rabbitmq")
 public class RabbitConfig extends RabbitProperties {
 
-
+	// 开启@EnableRabbit 用这个
 //	@Autowired
 //	private ConnectionFactory connectionFactory;
 
+
 	//region Java config, 注意 amqpAdmin的申明，推荐SpringBoot资源文件配置
+	// https://www.cnblogs.com/niugang0920/p/13043708.html
 	@Bean
 	public ConnectionFactory connectionFactory() {
 		CachingConnectionFactory connectionFactory = new CachingConnectionFactory();

@@ -1,5 +1,6 @@
 package com.inglc.codebase;
 
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
@@ -8,6 +9,8 @@ import org.springframework.context.annotation.ComponentScan;
 
 
 @ComponentScan(basePackages = "com.inglc.codebase")
+//@EnableApolloConfig(value = {"application", "log"})
+@EnableRabbit
 @SpringBootApplication(exclude = {RedisAutoConfiguration.class, RabbitAutoConfiguration.class})
 public class CodebaseApplication {
 
